@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 export const r2Client = new S3Client({
 	region: "auto",
@@ -13,17 +13,28 @@ export async function uploadFileToR2(
 	file: File,
 	folder: string = "surveys",
 ): Promise<string> {
-	const buffer = Buffer.from(await file.arrayBuffer());
-	const filename = `${folder}/${crypto.randomUUID()}-${file.name}`;
+	const bytes = await file.arrayBuffer();
+	const buffer = Buffer.from(bytes);
+	const extension = file.type.split("/")[1] || "bin";
+	const filename = `${folder}/${crypto.randomUUID()}.${extension}`;
 
-	await r2Client.send(
-		new PutObjectCommand({
-			Bucket: process.env.R2_BUCKET_NAME!,
-			Key: filename,
-			Body: buffer,
-			ContentType: file.type,
-		}),
-	);
+	try {
+		console.log(
+			`Uploading file ${filename} to bucket ${process.env.R2_BUCKET_NAME}`,
+		);
+		await r2Client.send(
+			new PutObjectCommand({
+				Bucket: process.env.R2_BUCKET_NAME!,
+				Key: filename,
+				Body: buffer,
+				ContentType: file.type,
+			}),
+		);
+		console.log(`Successfully uploaded ${filename}`);
+	} catch (error) {
+		console.error("Error uploading to R2:", error);
+		throw error;
+	}
 
 	return `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL}/${filename}`;
 }
