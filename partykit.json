@@ -1,0 +1,5 @@
+{
+	"name": "bbs-party",
+	"main": "party/index.ts",
+	"compatibilityDate": "2025-02-15"
+}
