@@ -156,6 +156,7 @@ export default function PostCreator({
 				id: Math.random() * -1, // Temporary ID
 				content: content,
 				author: session.user.name || "匿名ユーザー",
+				authorImage: session.user.image || null,
 				timestamp: formatDate(new Date()),
 				likeCount: 0,
 				replyCount: 0,
