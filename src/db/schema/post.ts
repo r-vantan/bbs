@@ -1,5 +1,6 @@
 import {
 	foreignKey,
+	index,
 	integer,
 	pgTable,
 	serial,
@@ -23,21 +24,31 @@ export const posts = pgTable(
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 		updatedAt: timestamp("updated_at").defaultNow().notNull(),
 	},
-	(table) => ({
-		parentFk: foreignKey({
+	(table) => [
+		foreignKey({
 			columns: [table.parentId],
 			foreignColumns: [table.id],
 		}).onDelete("cascade"),
-	}),
+		index("posts_created_at_idx").on(table.createdAt),
+		index("posts_user_id_idx").on(table.userId),
+		index("posts_type_idx").on(table.type),
+	],
 );
 
-export const likePosts = pgTable("like_posts", {
-	id: serial("id").primaryKey(),
-	userId: text("user_id")
-		.references(() => user.id)
-		.notNull(),
-	postId: integer("post_id")
-		.references(() => posts.id, { onDelete: "cascade" })
-		.notNull(),
-	createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const likePosts = pgTable(
+	"like_posts",
+	{
+		id: serial("id").primaryKey(),
+		userId: text("user_id")
+			.references(() => user.id)
+			.notNull(),
+		postId: integer("post_id")
+			.references(() => posts.id, { onDelete: "cascade" })
+			.notNull(),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(table) => [
+		index("likes_post_id_idx").on(table.postId),
+		index("likes_user_id_idx").on(table.userId),
+	],
+);

@@ -163,8 +163,27 @@ export async function toggleLike(postId: number, userId: string) {
 			});
 		}
 	}
-	revalidatePath("/");
+	// revalidatePath("/");
 }
+
+import { unstable_cache } from "next/cache";
+
+// ... (他のimport)
+
+// キャッシュされたgetPostsの実装
+export const getCachedPosts = unstable_cache(
+	async (
+		query?: string,
+		userId?: string,
+		tag?: string,
+		offset = 0,
+		limit = 10,
+	) => {
+		return await getPosts(query, userId, tag, offset, limit);
+	},
+	["posts-cache"],
+	{ revalidate: 1 }, // 1秒間キャッシュ
+);
 
 export async function getPosts(
 	query?: string,

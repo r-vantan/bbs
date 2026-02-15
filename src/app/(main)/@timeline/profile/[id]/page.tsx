@@ -2,7 +2,7 @@ import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { headers } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
-import { getPosts, getUserProfile } from "@/app/actions";
+import { getCachedPosts, getUserProfile } from "@/app/actions";
 import Timeline from "@/components/Timeline";
 import { auth } from "@/lib/auth";
 
@@ -14,7 +14,7 @@ export default async function ProfileTimelinePage({
 	const { id } = await params;
 	const profile = await getUserProfile(id);
 	// Fetch posts for this user
-	const posts = await getPosts(undefined, id);
+	const posts = await getCachedPosts(undefined, id);
 	const session = await auth.api.getSession({
 		headers: await headers(),
 	});

@@ -2,7 +2,7 @@
 
 import { CheckIcon, ClipboardDocumentIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import { useState } from "react";
+import { memo, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
@@ -14,7 +14,7 @@ interface MarkdownRendererProps {
 	className?: string;
 }
 
-export default function MarkdownRenderer({
+const MarkdownRenderer = memo(function MarkdownRenderer({
 	content,
 	className = "",
 }: MarkdownRendererProps) {
@@ -81,7 +81,9 @@ export default function MarkdownRenderer({
 			</ReactMarkdown>
 		</div>
 	);
-}
+});
+
+export default MarkdownRenderer;
 
 function CodeBlock({ language, value }: { language: string; value: string }) {
 	const [isCopied, setIsCopied] = useState(false);

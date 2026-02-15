@@ -16,6 +16,7 @@ import {
 	useState,
 	useTransition,
 } from "react";
+import useSWRInfinite from "swr/infinite";
 import { getPosts, PostData, toggleLike } from "@/app/actions";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import Modal from "@/components/Modal";
@@ -43,48 +44,51 @@ export default function Timeline({
 	hidePostCreator?: boolean;
 	header?: React.ReactNode;
 }) {
-	const [loadedPosts, setLoadedPosts] = useState<PostData[]>(posts);
-	const [offset, setOffset] = useState(posts.length);
-	const [hasMore, setHasMore] = useState(posts.length >= 10);
-	const [isLoading, setIsLoading] = useState(false);
-	const loaderRef = useRef<HTMLDivElement>(null);
-
-	const [replyingTo, setReplyingTo] = useState<PostData | null>(null);
 	const { data: session } = authClient.useSession();
 	const [isPending, startTransition] = useTransition();
 	const pathname = usePathname();
 	const router = useRouter();
 	const searchParams = useSearchParams();
+	const [replyingTo, setReplyingTo] = useState<PostData | null>(null);
+	const loaderRef = useRef<HTMLDivElement>(null);
 
-	// Update loadedPosts when initial posts prop changes (e.g. navigation)
-	useEffect(() => {
-		setLoadedPosts(posts);
-		setOffset(posts.length);
-		setHasMore(posts.length >= 10);
-	}, [posts]);
-
-	const loadMorePosts = async () => {
-		if (isLoading || !hasMore) return;
-		setIsLoading(true);
-		try {
-			const newPosts = await getPosts(q, userId, tag, offset, 10);
-			if (newPosts.length < 10) {
-				setHasMore(false);
-			}
-			setLoadedPosts((prev) => [...prev, ...newPosts]);
-			setOffset((prev) => prev + newPosts.length);
-		} catch (error) {
-			console.error("Failed to load more posts:", error);
-		} finally {
-			setIsLoading(false);
-		}
+	// SWR Key Generator
+	const getKey = (pageIndex: number, previousPageData: PostData[]) => {
+		if (previousPageData && !previousPageData.length) return null;
+		return [q, userId, tag, pageIndex * 10];
 	};
+
+	// SWR Fetcher
+	const fetcher = async ([q, userId, tag, offset]: [
+		string | undefined,
+		string | undefined,
+		string | undefined,
+		number,
+	]) => {
+		return await getPosts(q, userId, tag, offset, 10);
+	};
+
+	const {
+		data,
+		size,
+		setSize,
+		isLoading: isSwrLoading,
+		mutate,
+	} = useSWRInfinite(getKey, fetcher, {
+		fallbackData: [posts],
+		refreshInterval: 10000,
+		revalidateFirstPage: false,
+	});
+
+	const allPosts = data ? data.flat() : [];
+	const isEmpty = data?.[0]?.length === 0;
+	const isReachingEnd = isEmpty || (data && data[data.length - 1]?.length < 10);
 
 	useEffect(() => {
 		const observer = new IntersectionObserver(
 			(entries) => {
-				if (entries[0].isIntersecting) {
-					loadMorePosts();
+				if (entries[0].isIntersecting && !isReachingEnd && !isSwrLoading) {
+					setSize(size + 1);
 				}
 			},
 			{ threshold: 1.0 },
@@ -95,10 +99,10 @@ export default function Timeline({
 		}
 
 		return () => observer.disconnect();
-	}, [loaderRef, hasMore, isLoading, offset]); // Add dependencies for closure freshness
+	}, [loaderRef, isReachingEnd, isSwrLoading, setSize, size]);
 
 	const [optimisticPosts, dispatchOptimistic] = useOptimistic(
-		loadedPosts,
+		allPosts,
 		(state, action: OptimisticAction) => {
 			switch (action.type) {
 				case "add":
@@ -141,6 +145,7 @@ export default function Timeline({
 				userId: session.user.id,
 			});
 			await toggleLike(post.id, session.user.id);
+			mutate(); // Revalidate SWR cache
 		});
 	};
 
@@ -305,9 +310,9 @@ export default function Timeline({
 						</div>
 					</div>
 				))}
-				{hasMore && (
+				{!isReachingEnd && (
 					<div ref={loaderRef} className="p-4 text-center text-zinc-500">
-						{isLoading ? "読み込み中..." : "さらに読み込む"}
+						{isSwrLoading ? "読み込み中..." : "さらに読み込む"}
 					</div>
 				)}
 				{optimisticPosts.length === 0 && (

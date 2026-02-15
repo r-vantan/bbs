@@ -1,4 +1,4 @@
-import { getPosts } from "@/app/actions";
+import { getCachedPosts } from "@/app/actions";
 import Timeline from "@/components/Timeline";
 
 export default async function TagTimelinePage({
@@ -8,7 +8,7 @@ export default async function TagTimelinePage({
 }) {
 	const { tag } = await params;
 	const decodedTag = decodeURIComponent(tag);
-	const posts = await getPosts(undefined, undefined, decodedTag);
+	const posts = await getCachedPosts(undefined, undefined, decodedTag);
 
 	return (
 		<div className="h-full flex flex-col">

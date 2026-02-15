@@ -1,4 +1,4 @@
-import { getPosts } from "@/app/actions";
+import { getCachedPosts } from "@/app/actions";
 import Timeline from "@/components/Timeline";
 
 export default async function TimelinePage({
@@ -8,7 +8,7 @@ export default async function TimelinePage({
 }) {
 	const params = await searchParams;
 	const q = params?.q as string | undefined;
-	const posts = await getPosts(q);
+	const posts = await getCachedPosts(q);
 
 	return (
 		<div className="flex flex-col h-full bg-white dark:bg-zinc-950">

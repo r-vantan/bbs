@@ -33,6 +33,7 @@
 		"react-syntax-highlighter": "^16.1.0",
 		"remark-breaks": "^4.0.0",
 		"remark-gfm": "^4.0.1",
+		"swr": "^2.4.0",
 		"textarea-caret": "^3.1.0"
 	},
 	"devDependencies": {
