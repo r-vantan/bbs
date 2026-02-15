@@ -152,6 +152,12 @@ export default function Timeline({
 		router.push(`${pathname}?${params.toString()}`, { scroll: false });
 	};
 
+	const handlePrefetch = (postId: number) => {
+		const params = new URLSearchParams(searchParams.toString());
+		params.set("id", postId.toString());
+		router.prefetch(`${pathname}?${params.toString()}`);
+	};
+
 	return (
 		<div className="flex flex-col h-full overflow-hidden">
 			{!hidePostCreator && (
@@ -168,6 +174,7 @@ export default function Timeline({
 					<div
 						key={post.id}
 						onClick={() => handlePostClick(post.id)}
+						onMouseEnter={() => handlePrefetch(post.id)}
 						className="block p-4 border-b border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
 					>
 						<div className="flex gap-3">
