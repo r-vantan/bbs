@@ -13,12 +13,19 @@ export default async function ProfileTimelinePage({
 }) {
 	const { id } = await params;
 	const profile = await getUserProfile(id);
-	// Fetch posts for this user
-	const posts = await getCachedPosts(undefined, id);
 	const session = await auth.api.getSession({
 		headers: await headers(),
 	});
 	const currentUserId = session?.user.id;
+	// Fetch posts for this user
+	const posts = await getCachedPosts(
+		undefined,
+		id,
+		undefined,
+		0,
+		10,
+		currentUserId,
+	);
 
 	if (!profile) {
 		return (

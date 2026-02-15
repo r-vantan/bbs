@@ -1,5 +1,7 @@
+import { headers } from "next/headers";
 import { getCachedPosts } from "@/app/actions";
 import Timeline from "@/components/Timeline";
+import { auth } from "@/lib/auth";
 
 export default async function TagTimelinePage({
 	params,
@@ -8,7 +10,20 @@ export default async function TagTimelinePage({
 }) {
 	const { tag } = await params;
 	const decodedTag = decodeURIComponent(tag);
-	const posts = await getCachedPosts(undefined, undefined, decodedTag);
+
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
+	const currentUserId = session?.user.id;
+
+	const posts = await getCachedPosts(
+		undefined,
+		undefined,
+		decodedTag,
+		0,
+		10,
+		currentUserId,
+	);
 
 	return (
 		<div className="h-full flex flex-col">

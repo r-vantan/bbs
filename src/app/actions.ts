@@ -170,35 +170,15 @@ import { unstable_cache } from "next/cache";
 
 // ... (他のimport)
 
-// キャッシュされたgetPostsの実装
-export const getCachedPosts = unstable_cache(
-	async (
-		query?: string,
-		userId?: string,
-		tag?: string,
-		offset = 0,
-		limit = 10,
-	) => {
-		return await getPosts(query, userId, tag, offset, limit);
-	},
-	["posts-cache"],
-	{ revalidate: 1 }, // 1秒間キャッシュ
-);
-
-export async function getPosts(
+// 内部関数: データの取得ロジック (headers()を使わない)
+async function fetchPosts(
 	query?: string,
-	userId?: string,
+	filterUserId?: string, // userId引数を名前変更して明確化
 	tag?: string,
 	offset = 0,
 	limit = 10,
+	currentUserId?: string, // 閲覧者のID
 ): Promise<PostData[]> {
-	// Simulate network delay
-	// await new Promise((resolve) => setTimeout(resolve, 500));
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	});
-	const currentUserId = session?.user.id;
-
 	// Create an alias for the replies table to avoid conflict
 	const replies = db.$with("replies").as(
 		db
@@ -248,8 +228,8 @@ export async function getPosts(
 	// Build conditions
 	const conditions: (SQL | undefined)[] = [eq(posts.type, "thread")];
 
-	if (userId) {
-		conditions.push(eq(posts.userId, userId));
+	if (filterUserId) {
+		conditions.push(eq(posts.userId, filterUserId));
 	}
 
 	if (tag) {
@@ -303,6 +283,39 @@ export async function getPosts(
 		isLiked: likedPostIds.has(post.id),
 		images: post.images || [],
 	}));
+}
+
+// キャッシュされたgetPostsの実装
+export const getCachedPosts = unstable_cache(
+	async (
+		query?: string,
+		userId?: string,
+		tag?: string,
+		offset = 0,
+		limit = 10,
+		currentUserId?: string,
+	) => {
+		return await fetchPosts(query, userId, tag, offset, limit, currentUserId);
+	},
+	["posts-cache"],
+	{ revalidate: 1 }, // 1秒間キャッシュ
+);
+
+export async function getPosts(
+	query?: string,
+	userId?: string,
+	tag?: string,
+	offset = 0,
+	limit = 10,
+): Promise<PostData[]> {
+	// Simulate network delay
+	// await new Promise((resolve) => setTimeout(resolve, 500));
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
+	const currentUserId = session?.user.id;
+
+	return getCachedPosts(query, userId, tag, offset, limit, currentUserId);
 }
 
 export async function getPost(id: number) {

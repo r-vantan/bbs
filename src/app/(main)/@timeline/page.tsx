@@ -1,5 +1,7 @@
+import { headers } from "next/headers";
 import { getCachedPosts } from "@/app/actions";
 import Timeline from "@/components/Timeline";
+import { auth } from "@/lib/auth";
 
 export default async function TimelinePage({
 	searchParams,
@@ -8,7 +10,20 @@ export default async function TimelinePage({
 }) {
 	const params = await searchParams;
 	const q = params?.q as string | undefined;
-	const posts = await getCachedPosts(q);
+
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
+	const currentUserId = session?.user.id;
+
+	const posts = await getCachedPosts(
+		q,
+		undefined,
+		undefined,
+		0,
+		10,
+		currentUserId,
+	);
 
 	return (
 		<div className="flex flex-col h-full bg-white dark:bg-zinc-950">
