@@ -10,7 +10,7 @@ export const tags = pgTable("tags", {
 
 export const tagPosts = pgTable("tag_posts", {
   id: serial("id").primaryKey(),
-  tagId: serial("tag_id").references(() => tags.id).notNull(),
+  tagId: integer("tag_id").references(() => tags.id).notNull(),
   postId: integer("post_id").references(() => posts.id).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
