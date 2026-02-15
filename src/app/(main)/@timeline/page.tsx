@@ -12,7 +12,7 @@ export default async function TimelinePage({
 
 	return (
 		<div className="flex flex-col h-full bg-white dark:bg-zinc-950">
-			<div className="p-4 border-b border-zinc-200 dark:border-zinc-800 sticky top-0 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md z-10">
+			<div className="p-4 border-b border-zinc-200 dark:border-zinc-800 sticky top-0 bg-white dark:bg-zinc-950/80 backdrop-blur-md z-10">
 				<h2 className="text-xl font-bold">タイムライン</h2>
 			</div>
 			<div className="flex-1 overflow-hidden">

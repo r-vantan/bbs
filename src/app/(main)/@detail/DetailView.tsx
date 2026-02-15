@@ -7,15 +7,11 @@ import PostCreator from "@/components/PostCreator";
 import PostMenu from "@/components/PostMenu";
 
 export default async function DetailPage({
-	searchParams,
+	postId,
 }: {
-	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+	postId: number | null;
 }) {
-	const params = await searchParams;
-	const idStr = params?.id as string | undefined;
-	const id = idStr ? Number(idStr) : null;
-	const isValidId = id !== null && Number.isInteger(id) && id > 0;
-	const post = isValidId && id ? await getPost(id) : null;
+	const post = postId ? await getPost(postId) : null;
 
 	if (!post) {
 		return (
@@ -27,7 +23,7 @@ export default async function DetailPage({
 	}
 
 	return (
-		<div className="flex flex-col h-full bg-white dark:bg-zinc-950 p-4 overflow-y-auto">
+		<div className="flex flex-col h-full bg-white p-4 overflow-y-auto">
 			<div className="mx-0 w-full">
 				{/* Main Post */}
 				<div className="mb-8">
@@ -35,9 +31,19 @@ export default async function DetailPage({
 						<div className="flex items-center gap-4">
 							<Link
 								href={`/profile/${post.userId}`}
-								className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center text-white text-2xl font-bold hover:opacity-80 transition-opacity"
+								className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center text-white text-2xl font-bold hover:opacity-80 transition-opacity overflow-hidden"
 							>
-								{post.author[0]}
+								{post.authorImage ? (
+									<Image
+										src={post.authorImage}
+										alt={post.author}
+										width={64}
+										height={64}
+										className="w-full h-full object-cover"
+									/>
+								) : (
+									post.author[0]
+								)}
 							</Link>
 							<div>
 								<Link
@@ -52,7 +58,7 @@ export default async function DetailPage({
 						<PostMenu postId={post.id} authorId={post.userId} />
 					</div>
 
-					<div className="prose prose-zinc dark:prose-invert max-w-none mb-6 prose-p:my-0 prose-ul:my-0 prose-ol:my-0 prose-li:my-0 prose-headings:my-2 prose-headings:text-lg prose-headings:font-bold prose-a:text-blue-500 hover:prose-a:underline prose-pre:my-4 prose-pre:bg-transparent prose-pre:p-0">
+					<div className="prose prose-zinc max-w-none mb-6 prose-p:my-0 prose-ul:my-0 prose-ol:my-0 prose-li:my-0 prose-headings:my-2 prose-headings:text-lg prose-headings:font-bold prose-a:text-blue-500 hover:prose-a:underline prose-pre:my-4 prose-pre:bg-transparent prose-pre:p-0">
 						<div className="text-base leading-relaxed whitespace-pre-wrap">
 							<MarkdownRenderer content={post.body} />
 						</div>
@@ -73,7 +79,7 @@ export default async function DetailPage({
 									key={idx}
 									href={`/photo/${encodeURIComponent(img)}`}
 									scroll={false}
-									className={`relative w-full rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800 block ${
+									className={`relative w-full rounded-lg overflow-hidden border border-zinc-200 block ${
 										post.images.length === 1 ? "h-[500px]" : "aspect-square"
 									}`}
 								>
@@ -88,7 +94,7 @@ export default async function DetailPage({
 						</div>
 					)}
 
-					<div className="pt-4 border-t border-zinc-200 dark:border-zinc-800 flex gap-4 text-zinc-500 text-sm">
+					<div className="pt-4 border-t border-zinc-200 flex gap-4 text-zinc-500 text-sm">
 						<span>{post.likeCount} いいね</span>
 						<span>{post.replies.length} 返信</span>
 					</div>
@@ -110,20 +116,37 @@ export default async function DetailPage({
 				<div className="space-y-4 pt-8">
 					<h3 className="text-lg font-bold mb-4">返信</h3>
 					{post.replies.map((reply) => (
-						<div
-							key={reply.id}
-							className="p-4 rounded-lg bg-zinc-50 dark:bg-zinc-900"
-						>
-							<div className="flex items-center gap-2 mb-2">
+						<div key={reply.id} className="p-4 rounded-lg bg-zinc-50">
+							<div className="flex items-center gap-3 mb-2">
 								<Link
 									href={`/profile/${reply.userId}`}
-									className="font-semibold hover:underline"
+									className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-bold hover:opacity-80 transition-opacity overflow-hidden"
 								>
-									{reply.author}
+									{reply.authorImage ? (
+										<Image
+											src={reply.authorImage}
+											alt={reply.author}
+											width={32}
+											height={32}
+											className="w-full h-full object-cover"
+										/>
+									) : (
+										reply.author[0]
+									)}
 								</Link>
-								<span className="text-xs text-zinc-500">{reply.timestamp}</span>
+								<div className="flex items-baseline gap-2">
+									<Link
+										href={`/profile/${reply.userId}`}
+										className="font-semibold hover:underline"
+									>
+										{reply.author}
+									</Link>
+									<span className="text-xs text-zinc-500">
+										{reply.timestamp}
+									</span>
+								</div>
 							</div>
-							<div className="text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap mb-2 prose prose-zinc prose-sm dark:prose-invert max-w-none prose-p:my-0 prose-ul:my-0 prose-ol:my-0 prose-li:my-0 prose-headings:my-1 prose-headings:text-sm prose-headings:font-bold prose-a:text-blue-500 hover:prose-a:underline prose-pre:my-2 prose-pre:bg-[#1e1e1e] prose-pre:rounded-lg prose-pre:p-0">
+							<div className="text-zinc-800 whitespace-pre-wrap mb-2 prose prose-zinc prose-sm max-w-none prose-p:my-0 prose-ul:my-0 prose-ol:my-0 prose-li:my-0 prose-headings:my-1 prose-headings:text-sm prose-headings:font-bold prose-a:text-blue-500 hover:prose-a:underline prose-pre:my-2 prose-pre:bg-[#1e1e1e] prose-pre:rounded-lg prose-pre:p-0">
 								<MarkdownRenderer content={reply.body} />
 							</div>
 							{reply.images && reply.images.length > 0 && (
@@ -141,7 +164,7 @@ export default async function DetailPage({
 											key={idx}
 											href={`/photo/${encodeURIComponent(img)}`}
 											scroll={false}
-											className={`relative w-full rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800 block ${
+											className={`relative w-full rounded-lg overflow-hidden border border-zinc-200 block ${
 												reply.images.length === 1 ? "h-64" : "aspect-square"
 											}`}
 										>

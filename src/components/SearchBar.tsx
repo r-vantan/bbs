@@ -106,13 +106,13 @@ export default function SearchBar() {
 						value={query}
 						onChange={(e) => setQuery(e.target.value)}
 						onFocus={() => setIsOpen(true)}
-						className="w-full pl-10 pr-10 py-2 rounded-full bg-zinc-100 dark:bg-zinc-900 border-none focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+						className="w-full pl-10 pr-10 py-2 rounded-full bg-zinc-100 border-none focus:ring-2 focus:ring-blue-500 outline-none transition-all text-black"
 					/>
 					{query && (
 						<button
 							type="button"
 							onClick={clearQuery}
-							className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+							className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
 						>
 							<XMarkIcon className="w-4 h-4" />
 						</button>
@@ -121,7 +121,7 @@ export default function SearchBar() {
 			</form>
 
 			{isOpen && (
-				<div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden z-50">
+				<div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-zinc-200 overflow-hidden z-50 text-black">
 					{/* Search History */}
 					{!query && history.length > 0 && (
 						<div className="py-2">
@@ -137,7 +137,7 @@ export default function SearchBar() {
 										setIsOpen(false);
 										router.push(`/?q=${encodeURIComponent(term)}`);
 									}}
-									className="px-4 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer flex justify-between items-center group"
+									className="px-4 py-2 hover:bg-zinc-100 cursor-pointer flex justify-between items-center group"
 								>
 									<div className="flex items-center gap-3">
 										<ClockIcon className="w-4 h-4 text-zinc-400" />
@@ -171,7 +171,7 @@ export default function SearchBar() {
 												saveToHistory(user.name);
 												setIsOpen(false);
 											}}
-											className="px-4 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center gap-3 cursor-pointer"
+											className="px-4 py-2 hover:bg-zinc-100 flex items-center gap-3 cursor-pointer"
 										>
 											<div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-bold overflow-hidden">
 												{user.image ? (
@@ -207,9 +207,9 @@ export default function SearchBar() {
 												saveToHistory(`#${tag}`);
 												setIsOpen(false);
 											}}
-											className="px-4 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center gap-3 cursor-pointer"
+											className="px-4 py-2 hover:bg-zinc-100 flex items-center gap-3 cursor-pointer"
 										>
-											<div className="w-8 h-8 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-zinc-500">
+											<div className="w-8 h-8 rounded-full bg-zinc-200 flex items-center justify-center text-zinc-500">
 												#
 											</div>
 											<span className="font-medium text-sm">{tag}</span>
@@ -225,7 +225,7 @@ export default function SearchBar() {
 									setIsOpen(false);
 									router.push(`/?q=${encodeURIComponent(query)}`);
 								}}
-								className="px-4 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer flex items-center gap-3 text-blue-500"
+								className="px-4 py-2 hover:bg-zinc-100 cursor-pointer flex items-center gap-3 text-blue-500"
 							>
 								<MagnifyingGlassIcon className="w-4 h-4" />
 								<span>&quot;{query}&quot; を検索</span>

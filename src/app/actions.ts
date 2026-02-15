@@ -14,6 +14,7 @@ export interface PostData {
 	id: number;
 	content: string;
 	author: string;
+	authorImage: string | null;
 	timestamp: string;
 	likeCount: number;
 	replyCount: number;
@@ -199,6 +200,7 @@ export async function getPosts(
 			images: posts.images,
 			createdAt: posts.createdAt,
 			authorName: user.name,
+			authorImage: user.image,
 			userId: posts.userId,
 			likeCount: sql<number>`count(distinct ${likePosts.id})`.mapWith(Number),
 			replyCount: sql<number>`coalesce(${replies.count}, 0)`.mapWith(Number),
@@ -207,7 +209,14 @@ export async function getPosts(
 		.leftJoin(user, eq(posts.userId, user.id))
 		.leftJoin(likePosts, eq(posts.id, likePosts.postId))
 		.leftJoin(replies, eq(posts.id, replies.parentId))
-		.groupBy(posts.id, user.name, posts.userId, replies.count, posts.images)
+		.groupBy(
+			posts.id,
+			user.name,
+			user.image,
+			posts.userId,
+			replies.count,
+			posts.images,
+		)
 		.$dynamic();
 
 	// Join with tags if tag filter is present
@@ -267,6 +276,7 @@ export async function getPosts(
 		id: post.id,
 		content: post.body,
 		author: post.authorName ?? "Unknown",
+		authorImage: post.authorImage || null,
 		timestamp: formatDate(post.createdAt),
 		likeCount: post.likeCount,
 		replyCount: post.replyCount,
@@ -289,6 +299,7 @@ export async function getPost(id: number) {
 			images: posts.images,
 			createdAt: posts.createdAt,
 			authorName: user.name,
+			authorImage: user.image,
 			userId: posts.userId,
 			likeCount: sql<number>`count(${likePosts.id})`.mapWith(Number),
 		})
@@ -296,7 +307,7 @@ export async function getPost(id: number) {
 		.leftJoin(user, eq(posts.userId, user.id))
 		.leftJoin(likePosts, eq(posts.id, likePosts.postId))
 		.where(eq(posts.id, id))
-		.groupBy(posts.id, user.name, posts.userId, posts.images)
+		.groupBy(posts.id, user.name, user.image, posts.userId, posts.images)
 		.limit(1);
 
 	const post = postResult[0];
@@ -324,6 +335,7 @@ export async function getPost(id: number) {
 			images: posts.images,
 			createdAt: posts.createdAt,
 			authorName: user.name,
+			authorImage: user.image,
 			userId: posts.userId,
 		})
 		.from(posts)
@@ -335,12 +347,14 @@ export async function getPost(id: number) {
 		...post,
 		images: post.images || [],
 		author: post.authorName ?? "Unknown",
+		authorImage: post.authorImage || null,
 		timestamp: formatDate(post.createdAt),
 		isLiked,
 		replies: replies.map((r) => ({
 			...r,
 			images: r.images || [],
 			author: r.authorName ?? "Unknown",
+			authorImage: r.authorImage || null,
 			timestamp: formatDate(r.createdAt),
 		})),
 	};
