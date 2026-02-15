@@ -365,16 +365,19 @@ export async function getUserProfile(
 
 export async function updateUserProfile(
 	userId: string,
-	data: { name: string; bio?: string },
+	data: { name: string; bio?: string; image?: string },
 ) {
-	await db
-		.update(user)
-		.set({
-			name: data.name,
-			bio: data.bio,
-			updatedAt: new Date(),
-		})
-		.where(eq(user.id, userId));
+	const updateData: any = {
+		name: data.name,
+		bio: data.bio,
+		updatedAt: new Date(),
+	};
+
+	if (data.image !== undefined) {
+		updateData.image = data.image;
+	}
+
+	await db.update(user).set(updateData).where(eq(user.id, userId));
 
 	revalidatePath(`/profile/${userId}`);
 	revalidatePath("/");

@@ -1,10 +1,10 @@
 import {
+	foreignKey,
+	integer,
 	pgTable,
 	serial,
 	text,
 	timestamp,
-	integer,
-	foreignKey,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 
@@ -27,7 +27,7 @@ export const posts = pgTable(
 		parentFk: foreignKey({
 			columns: [table.parentId],
 			foreignColumns: [table.id],
-		}),
+		}).onDelete("cascade"),
 	}),
 );
 
@@ -37,7 +37,7 @@ export const likePosts = pgTable("like_posts", {
 		.references(() => user.id)
 		.notNull(),
 	postId: integer("post_id")
-		.references(() => posts.id)
+		.references(() => posts.id, { onDelete: "cascade" })
 		.notNull(),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 });

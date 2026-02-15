@@ -13,8 +13,8 @@ export async function uploadFileToR2(
 	file: File,
 	folder: string = "surveys",
 ): Promise<string> {
-	const bytes = await file.arrayBuffer();
-	const buffer = Buffer.from(bytes);
+	const arrayBuffer = await file.arrayBuffer();
+	const buffer = Buffer.from(arrayBuffer);
 	const extension = file.type.split("/")[1] || "bin";
 	const filename = `${folder}/${crypto.randomUUID()}.${extension}`;
 

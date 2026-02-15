@@ -1,7 +1,9 @@
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { headers } from "next/headers";
 import Link from "next/link";
 import { getPosts, getUserProfile } from "@/app/actions";
 import Timeline from "@/components/Timeline";
+import { auth } from "@/lib/auth";
 
 export default async function ProfileTimelinePage({
 	params,
@@ -12,6 +14,10 @@ export default async function ProfileTimelinePage({
 	const profile = await getUserProfile(id);
 	// Fetch posts for this user
 	const posts = await getPosts(undefined, id);
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
+	const currentUserId = session?.user.id;
 
 	if (!profile) {
 		return (
@@ -62,7 +68,15 @@ export default async function ProfileTimelinePage({
 							profile.name[0]
 						)}
 					</div>
-					{/* Edit Profile Button is on separate page */}
+					{/* Edit Profile Button */}
+					{currentUserId === id && (
+						<Link
+							href="/profile/edit"
+							className="px-4 py-2 rounded-full border border-zinc-300 dark:border-zinc-700 font-bold hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+						>
+							編集
+						</Link>
+					)}
 				</div>
 				<h1 className="text-xl font-bold mb-1">{profile.name}</h1>
 				<p className="text-zinc-500 text-sm mb-4">@{profile.id}</p>

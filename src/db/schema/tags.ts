@@ -1,4 +1,4 @@
-import { pgTable, serial, text, timestamp, integer } from "drizzle-orm/pg-core";
+import { integer, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
 import { posts } from "./post";
 
 export const tags = pgTable("tags", {
@@ -11,10 +11,10 @@ export const tags = pgTable("tags", {
 export const tagPosts = pgTable("tag_posts", {
 	id: serial("id").primaryKey(),
 	tagId: integer("tag_id")
-		.references(() => tags.id)
+		.references(() => tags.id, { onDelete: "cascade" })
 		.notNull(),
 	postId: integer("post_id")
-		.references(() => posts.id)
+		.references(() => posts.id, { onDelete: "cascade" })
 		.notNull(),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 });
