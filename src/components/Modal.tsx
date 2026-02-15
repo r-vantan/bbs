@@ -42,7 +42,7 @@ export default function Modal({
 	return (
 		<dialog
 			ref={dialogRef}
-			className="backdrop:bg-black/50 backdrop:backdrop-blur-sm open:animate-fade-in w-full max-w-lg rounded-2xl shadow-xl bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-800 p-0"
+			className="fixed inset-0 z-50 m-auto backdrop:bg-black/50 backdrop:backdrop-blur-sm open:animate-fade-in w-full max-w-lg rounded-2xl shadow-xl bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-800 p-0"
 			onClick={handleBackdropClick}
 			onClose={onClose}
 		>
