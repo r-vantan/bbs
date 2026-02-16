@@ -22,7 +22,8 @@ import { authClient } from "@/lib/auth-client";
 
 type OptimisticAction =
 	| { type: "add"; post: PostData }
-	| { type: "incrementReply"; postId: number };
+	| { type: "incrementReply"; postId: number }
+	| { type: "toggleLike"; postId: number; isLiked: boolean };
 
 export default function Timeline({
 	posts,
@@ -106,6 +107,18 @@ export default function Timeline({
 					return state.map((post) =>
 						post.id === action.postId
 							? { ...post, replyCount: (post.replyCount || 0) + 1 }
+							: post,
+					);
+				case "toggleLike":
+					return state.map((post) =>
+						post.id === action.postId
+							? {
+									...post,
+									isLiked: action.isLiked,
+									likeCount: action.isLiked
+										? post.likeCount + 1
+										: Math.max(0, post.likeCount - 1),
+								}
 							: post,
 					);
 				default:
@@ -235,6 +248,15 @@ export default function Timeline({
 										postId={post.id}
 										initialIsLiked={post.isLiked}
 										initialLikeCount={post.likeCount}
+										onToggle={(newIsLiked) => {
+											startTransition(() => {
+												dispatchOptimistic({
+													type: "toggleLike",
+													postId: post.id,
+													isLiked: newIsLiked,
+												});
+											});
+										}}
 									/>
 									<button
 										onClick={(e) => {
