@@ -1,11 +1,6 @@
 "use client";
 
-import {
-	ChatBubbleLeftIcon,
-	HeartIcon,
-	ShareIcon,
-} from "@heroicons/react/24/outline";
-import { HeartIcon as HeartIconSolid } from "@heroicons/react/24/solid";
+import { ChatBubbleLeftIcon, ShareIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -17,7 +12,8 @@ import {
 	useTransition,
 } from "react";
 import useSWRInfinite from "swr/infinite";
-import { getPosts, PostData, toggleLike } from "@/app/actions";
+import { getPosts, PostData } from "@/app/actions";
+import LikeButton from "@/components/LikeButton";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import Modal from "@/components/Modal";
 import PostCreator from "@/components/PostCreator";
@@ -26,8 +22,7 @@ import { authClient } from "@/lib/auth-client";
 
 type OptimisticAction =
 	| { type: "add"; post: PostData }
-	| { type: "incrementReply"; postId: number }
-	| { type: "toggleLike"; postId: number; userId: string };
+	| { type: "incrementReply"; postId: number };
 
 export default function Timeline({
 	posts,
@@ -113,41 +108,11 @@ export default function Timeline({
 							? { ...post, replyCount: (post.replyCount || 0) + 1 }
 							: post,
 					);
-				case "toggleLike":
-					return state.map((post) =>
-						post.id === action.postId
-							? {
-									...post,
-									likeCount: post.isLiked
-										? post.likeCount - 1
-										: post.likeCount + 1,
-									isLiked: !post.isLiked,
-								}
-							: post,
-					);
 				default:
 					return state;
 			}
 		},
 	);
-
-	const handleLike = (post: PostData) => {
-		if (!session) {
-			authClient.signIn.anonymous();
-			return;
-		}
-
-		startTransition(async () => {
-			// Optimistic update must happen inside the transition
-			dispatchOptimistic({
-				type: "toggleLike",
-				postId: post.id,
-				userId: session.user.id,
-			});
-			await toggleLike(post.id, session.user.id);
-			mutate(); // Revalidate SWR cache
-		});
-	};
 
 	const handleReply = (post: PostData) => {
 		setReplyingTo(post);
@@ -266,25 +231,11 @@ export default function Timeline({
 								)}
 
 								<div className="flex items-center gap-6 mt-3 text-zinc-500">
-									<button
-										onClick={(e) => {
-											e.preventDefault();
-											e.stopPropagation();
-											handleLike(post);
-										}}
-										className={`flex items-center gap-1 transition-colors group ${post.isLiked ? "text-pink-500" : "hover:text-pink-500"}`}
-									>
-										<div className="p-2 -ml-2 rounded-full group-hover:bg-pink-100 transition-colors">
-											{post.isLiked ? (
-												<HeartIconSolid className="w-5 h-5 fill-pink-500" />
-											) : (
-												<HeartIcon className="w-5 h-5 group-hover:fill-pink-500" />
-											)}
-										</div>
-										<span className="text-xs font-medium">
-											{post.likeCount > 0 && post.likeCount}
-										</span>
-									</button>
+									<LikeButton
+										postId={post.id}
+										initialIsLiked={post.isLiked}
+										initialLikeCount={post.likeCount}
+									/>
 									<button
 										onClick={(e) => {
 											e.preventDefault();
