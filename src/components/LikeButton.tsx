@@ -5,7 +5,7 @@ import { HeartIcon as HeartIconSolid } from "@heroicons/react/24/solid";
 import { useRouter } from "next/navigation";
 import { useEffect, useOptimistic, useTransition } from "react";
 import { mutate } from "swr";
-import { toggleLike } from "@/app/actions";
+import { getPosts, PostData, toggleLike } from "@/app/actions";
 import { authClient } from "@/lib/auth-client";
 
 export default function LikeButton({
@@ -57,15 +57,36 @@ export default function LikeButton({
 			if (onToggle) {
 				onToggle(newIsLiked);
 			}
-			await toggleLike(postId, session.user.id);
 
-			// Global SWR mutation to update timelines
-			mutate((key) => Array.isArray(key) && key.length === 4, undefined, {
-				revalidate: true,
-			});
+			// Global SWR mutation to update timelines - optimistic update for SWR cache
+			mutate(
+				(key) => Array.isArray(key) && key.length === 4,
+				(data: PostData[][] | undefined) => {
+					if (!data) return undefined;
+					return data.map((page) =>
+						page.map((post) =>
+							post.id === postId
+								? {
+										...post,
+										isLiked: newIsLiked,
+										likeCount: newIsLiked
+											? post.likeCount + 1
+											: Math.max(0, post.likeCount - 1),
+									}
+								: post,
+						),
+					);
+				},
+				{ revalidate: false }, // Don't revalidate immediately, rely on local optimistic update first
+			);
+
+			await toggleLike(postId, session.user.id);
 
 			// Refresh server components (like DetailView)
 			router.refresh();
+
+			// Finally revalidate SWR to ensure consistency
+			mutate((key) => Array.isArray(key) && key.length === 4);
 		});
 	};
 

@@ -74,6 +74,7 @@ export default function Timeline({
 		fallbackData: [posts],
 		refreshInterval: 10000,
 		revalidateFirstPage: false,
+		revalidateOnMount: false, // Prevent initial revalidation overwriting optimistic updates immediately
 	});
 
 	const allPosts = data ? data.flat() : [];
